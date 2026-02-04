@@ -1,7 +1,6 @@
 package com.mf.mp63.controler;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+
 import com.mf.mp63.request.CompleteTxnRequest;
 import com.mf.mp63.request.ConnectDeviceRequest;
 import com.mf.mp63.request.StartTransactionRequest;
@@ -10,7 +9,6 @@ import com.mf.mp63.response.ConnectDeviceResponse;
 import com.mf.mp63.response.DeviceListResponse;
 import com.mf.mp63.response.StartTransactionResponse;
 import com.mf.mp63.service.CardService;
-import com.mf.mp63.services.BlueToothServicess;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
@@ -23,9 +21,6 @@ import java.util.concurrent.ExecutionException;
 @RequestMapping(path = "/txn")
 @Slf4j
 public class CardController {
-
-    @Autowired
-    BlueToothServicess services;
 
     @Autowired
     CardService cardService;

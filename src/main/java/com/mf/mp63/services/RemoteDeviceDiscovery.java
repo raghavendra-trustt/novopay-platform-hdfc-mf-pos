@@ -1,5 +1,8 @@
-package bluetooth;
+package com.mf.mp63.services;
 
+import com.morefun.mpos.sdk.Log;
+
+import javax.bluetooth.*;
 import java.io.IOException;
 import java.util.HashSet;
 import java.util.Set;
@@ -7,15 +10,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-
-import javax.bluetooth.DeviceClass;
-import javax.bluetooth.DiscoveryAgent;
-import javax.bluetooth.DiscoveryListener;
-import javax.bluetooth.LocalDevice;
-import javax.bluetooth.RemoteDevice;
-import javax.bluetooth.ServiceRecord;
-
-import com.morefun.mpos.sdk.Log;
 
 public class RemoteDeviceDiscovery {
 	public final static Set<RemoteDevice> devicesDiscovered = new HashSet<RemoteDevice>();

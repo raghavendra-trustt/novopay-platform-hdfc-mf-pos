@@ -20,7 +20,6 @@ import com.mf.mp63.DeviceHelper;
 import com.morefun.mpos.sdk.Controler;
 import com.morefun.mpos.sdk.constants.EnumConnectMode;
 
-import bluetooth.RemoteDeviceDiscovery;
 import model.Devices;
 
 @Service
@@ -30,7 +29,7 @@ public class BlueToothServicess {
 
 	@Autowired
 	DeviceHelper deviceHelper;
-	
+
  public List<Devices> getAllDevicess() throws IOException, InterruptedException, ExecutionException
  {
 	 Boolean descoveryStatus=RemoteDeviceDiscovery.runDiscovery();
@@ -40,14 +39,14 @@ public class BlueToothServicess {
 			Future<List<Devices>> futureTask = threadpool.submit(() ->getAllDevice());
 			while (!futureTask.isDone()) {
 			     log.debug("FutureTask is not finished yet...");
-			 } 
-			 List<Devices> result = futureTask.get(); 
+			 }
+			 List<Devices> result = futureTask.get();
 
 			 threadpool.shutdown();
 			 return result;
 	 }
 	return null;
-	
+
  }
  public List<Devices> getAllDevice() throws IOException
 
@@ -55,19 +54,19 @@ public class BlueToothServicess {
 	 Set<RemoteDevice> devices = RemoteDeviceDiscovery.getDevices();
 	 List<Devices> deviceList= new ArrayList<Devices>();//<Devices>();
 	 Iterator<RemoteDevice> it = devices.iterator();
-		while (it.hasNext()) {  
+		while (it.hasNext()) {
 			Devices devicesData=new Devices();
-			RemoteDevice device = it.next();  
-			
+			RemoteDevice device = it.next();
+
 				log.debug(device.getFriendlyName(false));
 				devicesData.setName(device.getFriendlyName(false));
 				devicesData.setAddress(device.getBluetoothAddress());
 				deviceList.add(devicesData);
 
-			
-		} 
+
+		}
 	return deviceList;
-	 
+
  }
  
  public String disconnectDevice()

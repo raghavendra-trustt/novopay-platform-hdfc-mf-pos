@@ -11,20 +11,11 @@ import com.mf.mp63.request.StartTransactionRequest;
 import com.mf.mp63.response.*;
 import com.mf.mp63.services.BlueToothServicess;
 import com.mf.mp63.services.OtherService;
-import com.morefun.mpos.sdk.Controler;
 import com.morefun.mpos.sdk.constants.EnumCommRet;
-import com.morefun.mpos.sdk.constants.EnumKeyIndex;
-import com.morefun.mpos.sdk.constants.EnumMainKeyEncType;
-import com.morefun.mpos.sdk.result.LoadKekResult;
-import com.morefun.mpos.sdk.result.LoadMainKeyResult;
 import com.morefun.mpos.sdk.result.ReadCardResult;
 import com.morefun.mpos.sdk.result.ReadPosInfoResult;
-import com.morefun.mpos.sdk.utils.BytesUtils;
 import lombok.extern.slf4j.Slf4j;
 import model.*;
-import org.apache.commons.codec.DecoderException;
-import org.apache.commons.codec.binary.Hex;
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -66,54 +57,6 @@ public class CardServiceImpl implements CardService{
      * @param connectDeviceRequest
      * @return
      */
-    /*@Override
-    public ConnectDeviceResponse establishConnection(ConnectDeviceRequest connectDeviceRequest) {
-        ConnectDeviceResponse connectDeviceResponse = new ConnectDeviceResponse();
-        ResponseStatus responseStatus = new ResponseStatus();
-        // as confimed by Morefun team, vendor Id was hard code to 0
-        String connectionModeResp = "";
-        String vendorResp = "";
-        boolean connectUsb = false;
-        try {
-            vendorResp = services.setVendorIdService(0);
-            if(vendorResp.equalsIgnoreCase("success")) {
-                connectionModeResp = services.connectionModeService(0, "HID");
-                if(connectionModeResp.equalsIgnoreCase("Success")) {
-                    connectUsb = deviceHelper.connect(connectDeviceRequest.getDeviceAddress());
-                    if (connectUsb) {
-                        responseStatus.setCode("00");
-                        responseStatus.setStatus("Success");
-                        responseStatus.setMessage("Device connect success");
-                        DeviceInfo deviceInfo = otherService.getDeviceInfo();
-                        connectDeviceResponse.setPosSerialNumber(deviceInfo.getData().sn);
-                    } else {
-                        responseStatus.setCode("120");
-                        responseStatus.setStatus("Failed");
-                        responseStatus.setMessage("Device connect fail");
-                    }
-                } else {
-                    //connectmode api failed
-                    responseStatus.setCode("120");
-                    responseStatus.setStatus("Failed");
-                    responseStatus.setMessage("Device connect fail - setConnectionMode api failed");
-                }
-            } else {
-                //vendor id api failed
-                responseStatus.setCode("120");
-                responseStatus.setStatus("Failed");
-                responseStatus.setMessage("Device connect fail - setVendor api failed");
-            }
-
-        } catch (Exception e) {
-            log.error("error on connect device : ",e);
-            responseStatus.setCode("120");
-            responseStatus.setStatus("Failed");
-            responseStatus.setMessage("Device connect fail");
-        } finally {
-            connectDeviceResponse.setResponseStatus(responseStatus);
-        }
-        return connectDeviceResponse;
-    }*/
 
     public ConnectDeviceResponse establishConnection(ConnectDeviceRequest connectDeviceRequest) {
         ConnectDeviceResponse connectDeviceResponse = new ConnectDeviceResponse();
@@ -205,136 +148,6 @@ public class CardServiceImpl implements CardService{
             deviceListResponse.setResponseStatus(responseStatus);
         }
         return deviceListResponse;
-    }
-
-
-    public StartTransactionResponse startTransaction1(StartTransactionRequest txnDetails) {
-        log.info("Initiating Card Transaction");
-        StartTransactionResponse cardResponse = new StartTransactionResponse();
-        ResponseStatus responseStatus = new ResponseStatus();
-        try {
-            DeviceKeys keys = txnDetails.getKeys();
-            String loadAid = "";
-            String capk = "";
-            boolean keyInjection = injectKeys(keys);
-
-            boolean loademv = loadEMV();
-            log.info("load emv resp : {}",loademv);
-            loadAid = loadAids();
-            log.info("load aid resp : {}",loadAid);
-            capk = loadCAPKs();
-            log.info("load capk resp : {}",capk);
-
-
-            //if(capk != null && !capk.equalsIgnoreCase("Download CAPK ERROR")){
-            TransactionType transactionType = Arrays.stream(TransactionType.values())
-                    .filter(t -> t.getDCTransactionCategory().equals(txnDetails.getTxnType()))
-                    .findFirst()
-                    .orElse(TransactionType.BALANCE_ENQUIRY);
-
-            ReadCardModel param = getReadCardModel(txnDetails, transactionType);
-            ReadCardResult result = null;
-            try {
-                result = deviceHelper.readCard(param);
-            } catch (IllegalAccessException e) {
-                //throw new RuntimeException(e);
-                log.error("exception on card read : ", e);
-            }
-
-            log.info("card result : {}", result);
-            if (result != null && !result.commResult.equals(EnumCommRet.NOERROR)) {
-                responseStatus.setMessage("Read card error");
-                responseStatus.setCode("201");
-                return cardResponse;
-            } else if (result != null) {
-                switch (result.cardType) {
-                    case 0:
-                        responseStatus.setMessage("Canceled by User");
-                        responseStatus.setCode("201");
-                        break;
-                    case 1:
-                    case 2:
-                    case 3:
-                        responseStatus.setMessage("Success ");
-                        responseStatus.setCode("200");
-                        //StringBuilder builder = new StringBuilder();
-                        if (result.cardType == 1) {
-                            //builder.append("\ncardType:" + "Mag Card");
-                            cardResponse.setCardType("Mag Card");
-                            //Mag Card
-                        } else if (result.cardType == 2) {
-                            //IC Card
-                            //builder.append("\ncardType:" + "IC Card");
-                            cardResponse.setCardType("IC Card");
-                        } else if (result.cardType == 3) {
-                            //RF Card
-                            // builder.append("\ncardType:" + "RF Card");
-                            cardResponse.setCardType("RF Card");
-                        }
-
-//                    builder.append("\npan:" + result.pan);
-//                    builder.append("\npansn:" + result.pansn);
-//                    builder.append("\npinBlock:" + result.pinblock);
-//                    builder.append("\ntrack2:" + result.track2);
-//                    builder.append("\ntrack3:" + result.track3);
-//                    builder.append("\nicData:" + result.icData);
-//                    builder.append("\nexpData:" + result.expData);
-//                    builder.append("\nksn:" + result.ksn);
-//                    builder.append("\nmac_ksn:" + result.mac_ksn);
-//                    builder.append("\nmag_ksn:" + result.mag_ksn);
-//                    builder.append("\npin_ksn:" + result.pin_ksn);
-                        //cardResponse.setData(result);
-                        cardResponse.setCardNumber(result.pan);
-                        cardResponse.setCardSeqNo(result.pansn);//always getting 01
-                        cardResponse.setCardType(String.valueOf(result.cardType));
-                        //cardResponse.setEmv(result.emvResult);
-                        //cardResponse.setData();
-                        //cardResponse.setDeviceInfo();
-                        cardResponse.setIccChipData(result.icData);
-                        cardResponse.setPinBlock(result.pinblock);
-                        //cardResponse.setPosDataCode();
-                        //cardResponse.setPosEntryMode();
-                        cardResponse.setServiceCondCode(result.serviceCode);
-                        cardResponse.setTrack2data(result.track2);
-                        //state=builder.toString();
-                        break;
-
-                    case 4:
-                        responseStatus.setMessage("Need insert ic card");
-                        responseStatus.setCode("200");
-                        //state="Need insert ic card";
-                        //Need Insert ICCard
-                        break;
-                    case 5:
-                        //TimeOut
-//                	state="Read card timeout";
-                        responseStatus.setMessage("Read card timeout");
-                        responseStatus.setCode("201");
-                        break;
-                    case 6:
-                        responseStatus.setMessage("Read card error");
-                        responseStatus.setCode("201");
-                        //state="Read card error";
-                        //read error
-                        break;
-                    default:
-                        break;
-                }
-
-            }
-            String txnFunctionCode = "MCR";
-            String posDataCode = preparePosDataCode(txnFunctionCode, txnDetails.getAgentMobile(), txnDetails.getAgentPincode());
-            cardResponse.setPosDataCode(posDataCode);
-            cardResponse.setPosEntryMode("051");
-            cardResponse.setPosMode("05");
-            cardResponse.setEmv("1");
-            cardResponse.setResponseStatus(responseStatus);
-            cardResponse.setDeviceInfo(getDeviceInfo());
-        }catch (Exception e) {
-            log.error("erron on startTxn : ",e);
-        }
-       // }
-        return cardResponse;
     }
 
     public Map<String, String> getDeviceInfo() {
@@ -561,123 +374,6 @@ public class CardServiceImpl implements CardService{
         }
         return completeTxnResponse;
     }
-    /*public CompleteTxnResponse completeTransaction1(CompleteTxnRequest completeTxnRequest) {
-        CompleteTxnResponse completeTxnResponse = new CompleteTxnResponse();
-        ResponseStatus responseStatus = new ResponseStatus();
-        log.info("Completing Transaction");
-        //if 91 tag is not available empty byte to pass in authcode
-        try {
-            List<String> responseChipData = new ArrayList<>();
-            if(StringUtils.isBlank(completeTxnRequest.getChipData())) {
-                responseChipData.add("910A00000000000000000000");
-            } else {
-                Map<String,String> tagMap = parseTLV(completeTxnRequest.getChipData());
-                Set<String> keysToKeep = Set.of("91", "71", "72");
-                Map<String, String> filtered = tagMap.entrySet().stream()
-                        .filter(entry -> keysToKeep.contains(entry.getKey()))
-                        .collect(Collectors.toMap(Map.Entry::getKey, Map.Entry::getValue));
-
-                filtered.forEach((k,v) -> {
-                    try {
-                        responseChipData.add(k + Hex.encodeHexString(new byte[]{(byte) Hex.decodeHex(v).length}) + v);
-                    } catch (DecoderException e) {
-                        log.error("exception on tag parser : {0}" , e);
-                    }
-                });
-
-                if(StringUtils.isBlank(filtered.get("91"))) {
-                    responseChipData.add("910A00000000000000000000");
-                }
-                //setting 8A TAG Authorization response code
-                responseChipData.add("8A02" + String.valueOf(Hex.encodeHex(completeTxnRequest.getResponseCode().getBytes())));
-            }
-            log.info("final responseChipData data : {}", responseChipData);
-            //ONLINE_AUTH_RESULT - 0308 Tag
-            String apiStatusCode = completeTxnRequest.getApiStatus();
-            try {
-                int responseCode = 2;
-                if (apiStatusCode.equalsIgnoreCase("success")) {
-                    responseCode = 0;
-                } else if (apiStatusCode.equals("fail")) {
-                    responseCode = 1;
-                }
-                log.info("setting EMV response card data...");
-                String onlineAuthResultString;
-                if (responseCode == 0) {
-                    log.info("Transaction approved online");
-                    //transaction approved online
-                    onlineAuthResultString = "00";
-                } else if (responseCode == 2) {
-                    log.info("Connect host failed");
-                    //connect host failed
-                    onlineAuthResultString = "02";
-                } else {
-                    log.info("Transaction declined online");
-                    //transaction declined online
-                    onlineAuthResultString = "01";
-                }
-                log.info("response code : " + responseCode);
-                responseChipData.add("0308" + String.valueOf(Hex.encodeHex(onlineAuthResultString.getBytes())));
-            } catch (Exception e){
-
-            }
-            String authData = "";
-            if (!responseChipData.isEmpty()) {
-                authData = responseChipData.stream()
-                        .filter(Objects::nonNull) // remove nulls
-                        .filter(s -> !s.isEmpty()) // remove empty strings
-                        .collect(Collectors.joining()); // concatenate
-                }
-            log.info("authData : {}" , authData);
-            String resp = deviceHelper.onlineAuth(authData,"");
-            responseStatus.setCode("00");
-            responseStatus.setStatus("Success");
-            responseStatus.setMessage("success");
-            completeTxnResponse.setResponseStatus(responseStatus);
-        } catch (Exception e) {
-            throw new RuntimeException(e);
-        } finally {
-        }
-        return completeTxnResponse;
-    }*/
-
-    public static Map<String, String> parseTLV(String hex) {
-        Map<String, String> tagMap = new LinkedHashMap<>();
-        try {
-            int i = 0;
-            while (i < hex.length()) {
-                // Detect tag
-                String tag = hex.substring(i, i + 2);
-                i += 2;
-                // Extended tag (2+ bytes)
-                if ((Integer.parseInt(tag, 16) & 0x1F) == 0x1F) {
-                    tag += hex.substring(i, i + 2);
-                    i += 2;
-                }
-
-                // Length
-                int lengthByte = Integer.parseInt(hex.substring(i, i + 2), 16);
-                i += 2;
-                int length;
-                if (lengthByte > 0x80) {
-                    int lenLen = lengthByte - 0x80;
-                    length = Integer.parseInt(hex.substring(i, i + lenLen * 2), 16);
-                    i += lenLen * 2;
-                } else {
-                    length = lengthByte;
-                }
-
-                // Value
-                String value = hex.substring(i, i + length * 2);
-                i += length * 2;
-
-                tagMap.put(tag, value);
-            }
-        }catch (Exception e) {
-            log.error("error while parsing : {0}", e);
-        }
-        return tagMap;
-    }
 
     private static ReadCardModel getReadCardModel(StartTransactionRequest txnDetails, TransactionType transactionType) {
         ReadCardModel param = new ReadCardModel();
@@ -690,90 +386,9 @@ public class CardServiceImpl implements CardService{
         param.setRequiretype((byte) txnDetails.getRequiretype());
         param.setEmvTransactionType(transactionType.getDcTxnTypeVal());
         param.setForceonline(true);
-        /*ArrayList<String> tags = new ArrayList<>();
-        tags.add("EMV_TAG_9F26_IC_AC");
-        tags.add("EMV_TAG_9F27_IC_CID");
-        tags.add("EMV_TAG_9F10_IC_ISSAPPDATA");
-        tags.add("EMV_TAG_9F37_TM_UNPNUM");
-        tags.add("EMV_TAG_9F36_IC_ATC");
-        tags.add("EMV_TAG_95_TM_TVR");
-        tags.add("EMV_TAG_9A_TM_TRANSDATE");
-        tags.add("EMV_TAG_9C_TM_TRANSTYPE");
-        tags.add("EMV_TAG_5F2A_TM_CURCODE");
-        tags.add("EMV_TAG_82_IC_AIP");
-        tags.add("EMV_TAG_9F1A_TM_CNTRYCODE");
-        tags.add("EMV_TAG_9F03_TM_OTHERAMNTN");
-        tags.add("EMV_TAG_9F33_TM_CAP");
-        tags.add("EMV_TAG_9F34_TM_CVMRESULT");
-        tags.add("EMV_TAG_9F35_TM_TERMTYPE");
-        tags.add("EMV_TAG_9F1E_TM_IFDSN");
-        tags.add("EMV_TAG_84_IC_DFNAME");
-        tags.add("EMV_TAG_9F09_TM_APPVERNO");
-        tags.add("EMV_TAG_9F63_TM_BIN");
-        tags.add("EMV_TAG_9F41_TM_TRSEQCNTR");*/
-
-        //param.setTags(tags);
         return param;
     }
 
-    /*private void injectKeys1(DeviceKeys deviceKeys) throws Exception {
-        //set index
-        KeyIndexModel keyIndexModel = new KeyIndexModel();
-        keyIndexModel.setKeyIndex(0);
-        String keyIndexResp = deviceHelper.setKeyIndex(keyIndexModel);
-        log.info("keyIndexResp : {}",keyIndexResp);
-        //loadkek(DTMK)
-        LoadKekModel loadKekModel = new LoadKekModel();
-        loadKekModel.setKey(deviceKeys.getDtmk());
-        String data = "0000000000000000";
-        byte[] kcv = SecurityUtil.doubleDes(BytesUtil.hexString2ByteArray(deviceKeys.getDtmk()), BytesUtil.hexString2ByteArray(data));
-        //kcvGenerator.generate4ByteKCV(deviceKeys.getDtmk().getBytes());
-        String dtmkKcv = BytesUtil.bytes2Hex(kcv).substring(0,8);
-        *//*byte[] kvc = SecurityUtil.doubleDes(BytesUtil.hexString2ByteArray("E2D16FDED24111FA508DBE9960D1787E"), BytesUtil.hexString2ByteArray(data));
-        String calcKvc = BytesUtil.bytes2Hex(kvc).substring(0, 8);
-        System.out.println("kcv --"+ calcKvc);*//*
-        loadKekModel.setKcv(dtmkKcv);
-        //LoadKekResult bret = Controler.getInstance().loadKek(BytesUtil.hexString2ByteArray(deviceKeys.getDtmk()), BytesUtil.hexString2ByteArray(dtmkKcv));
-        boolean loadDtmkResp = deviceHelper.loadKek(loadKekModel);
-        log.info("loadDtmkResp : {}",loadDtmkResp);
-        //loadkek(TMK)
-
-
-        String kek = deviceKeys.getDtmk();
-
-        byte[] plain = SecurityUtil.doubleUnDes(BytesUtil.hexString2ByteArray(kek), BytesUtil.hexString2ByteArray(deviceKeys.getTmk()));
-        byte[] kvc = SecurityUtil.doubleDes(plain, BytesUtil.hexString2ByteArray(data));
-
-        LoadMasterKeyModel loadMasterKeyModel = new LoadMasterKeyModel();
-        //byte[] dmkkcv = SecurityUtil.doubleDes(BytesUtil.hexString2ByteArray(deviceKeys.getTmk()), BytesUtil.hexString2ByteArray(data));
-        String dmkKcvStr = BytesUtil.bytes2Hex(kvc).substring(0,8);
-        loadMasterKeyModel.setKey(deviceKeys.getTmk());
-        loadMasterKeyModel.setKcv(dmkKcvStr);
-        //LoadKekResult brettmk = Controler.getInstance().loadMainKey(BytesUtil.hexString2ByteArray(deviceKeys.getTmk()), BytesUtil.hexString2ByteArray(dmkKcvStr));
-        boolean loadTmkResp = deviceHelper.loadMasterKey(loadMasterKeyModel);
-        //String key = "DCA68732FA5C3D7C4FADE87D4C35F15A";
-        //String kvc = "636B8475";
-
-       *//* LoadMainKeyResult result = Controler.getInstance().loadMainKey(EnumMainKeyEncType.KEK_FIXED,
-                EnumKeyIndex.INDEX0,
-                BytesUtils.hexString2ByteArray(deviceKeys.getTmk()),
-                BytesUtils.hexString2ByteArray(dmkKcvStr));*//*
-        log.info("loadTmkResp : {}",loadTmkResp);
-        //loadkeys(TDK,TPK)
-        LoadWorkKeyModel loadWorkKeyModel = new LoadWorkKeyModel();
-        //byte[] tpkcv = SecurityUtil.doubleDes(BytesUtil.hexString2ByteArray(deviceKeys.getTpk()), BytesUtil.hexString2ByteArray(data));
-        //String tpkcvStr = BytesUtil.bytes2Hex(tpkcv).substring(0,8);
-
-        //byte[] tdkcv = SecurityUtil.doubleDes(BytesUtil.hexString2ByteArray(deviceKeys.getTdk()), BytesUtil.hexString2ByteArray(data));
-        //String tdkcvStr = BytesUtil.bytes2Hex(tdkcv).substring(0,8);
-
-        loadWorkKeyModel.setPinKey(deviceKeys.getTpk());
-        //loadWorkKeyModel.setPinKcv(tpkcvStr);
-        loadWorkKeyModel.setTdkKey(deviceKeys.getTdk());
-        //loadWorkKeyModel.setTdkKcv(tdkcvStr);
-        boolean loadWorkekyResp = deviceHelper.loadWorkKey(loadWorkKeyModel);
-        log.info("loadWorkekyResp : {}",loadWorkekyResp);
-    }*/
     private boolean injectKeys(DeviceKeys deviceKeys) {
         // default to false
         boolean keyInjection = false;
