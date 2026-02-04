@@ -1,0 +1,30 @@
+<configuration>
+
+    <!-- Console Appender -->
+    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
+        <encoder>
+            <pattern>%d{yyyy-MM-dd HH:mm:ss} %-5level [%thread] %logger{36} - [%X{terminalId}] - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- File Appender -->
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>logs/app_mp63.log</file> <!-- Relative to your working directory -->
+        <append>true</append>
+        <encoder>
+            <pattern> [%X{apiName}] - [%X{terminalId}] - [%X{txnId}] %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <logger name="com.*" level="TRACE" >
+        <appender-ref ref="FILE" />
+        <appender-ref ref="CONSOLE" />
+    </logger>
+
+    <!-- Root Logger -->
+    <root level="ALL" >
+        <appender-ref ref="CONSOLE" />
+        <appender-ref ref="FILE" />
+    </root>
+
+</configuration>

@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html  xmlns:th="http://www.thymeleaf.org">
+<head>
+<meta charset="ISO-8859-1">
+<title>Insert title here</title>
+<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+
+<style>
+div {
+  
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-right: 5px;
+  margin-left: 5px;
+ 
+}
+input {
+  
+  margin-top: 5px;
+  margin-bottom: 5px;
+  margin-right: 5px;
+  margin-left: 5px;
+ 
+}
+#loading_screen {
+width: 100%;
+height: 100%;
+background: #FFF;
+}
+</style>
+</head>
+<body>
+
+<div style="display:flex; flex-direction: row;  align-items: center"><!-- justify-content: center; -->
+<div>
+
+
+<div >
+ <input type="button" value="Search Devices" id="loadDevices"/>
+</div>
+
+  <div>
+  <input type="button" value="Connect Device" id="connectDevice"/>
+  </div>
+  
+    <div>
+   <input type="button" value="Disconnect" id="disConnectDevice"/>
+   </div>
+   <div>
+   <input type="button" value="Check Connection" id="isConnectDevice"/>
+   </div>
+   
+</div>
+
+
+<div>
+
+<div>
+<span>Select Vender Id</span>
+</div>
+<div>
+<select size="5" style="width: 150px" id = "selectVendorId">
+           <option value="0">0</option>
+           <option value="1">1</option>
+           <option value="2">2</option>
+           <option value="3">3</option>
+           <option value="4">4</option>
+           <option value="5">5</option>
+           <option value="6">6</option>
+           <option value="7">7</option>
+            <option value="8">8</option>
+           <option value="9">9</option>
+           <option value="10">10</option>
+           <option value="11">11</option>
+           <option value="12">12</option>
+           <option value="13">13</option>
+           <option value="14">14</option>
+           <option value="15">15</option>
+           <option value="16">16</option>
+           <option value="17">17</option>
+           <option value="18">18</option>
+            <option value="19">19</option>
+           <option value="20">20</option>
+           <option value="21">21</option>
+</select>
+
+</div>
+</div>
+
+   
+   <div>
+       <div>
+       <span>Connection Mode</span>
+       </div> 
+        <div>
+        <select size="5" style="width: 150px" id="connectMode">
+           <option value="Bluetooth">Bluetooth</option>
+           <option value="HID">HID</option>
+        </select>
+        </div>
+        
+    </div>
+
+
+
+<div style="width: 300px"><div>
+<span id= "deviceListTitle">Select Device List</span>
+</div>
+<div>
+<select id= "deviceList" size="5" style="width: 300px">
+         
+</select>
+
+</div>
+</div> 
+
+</div>
+<div style="display:flex; flex-direction: row;  align-items: center">
+<input type="button" value="Set Key Index" id="keyIndexId"/>
+<input type="button" value="Load Kek" id="loadKek"/>
+<input type="button" value="Download Master Key" id="downloadMasterKey"/>
+<input type="button" value="Download Work Key" id="downloadWorkKey"/>
+<input type="button" value="Calculate mac" id="calMac"/>
+
+</div>
+<div style="display:flex; flex-direction: row;  align-items: center">
+
+<!-- <input type="button" value="Get Random Number" id="rdnmNumb"/> -->
+<input type="button" value="Download PUK" id="downloadPUK"/>
+<input type="button" value="Download AID" id="downloadAID"/>
+<input type="button" value="DUKPT INIT" id="dukptInit"/>
+<input type="button" value="Card Reading" id="cardReading"/>
+<input type="button" value="Perform Online authorization" id="authOnline"/>
+<input type="button" value="Set EMV PARAM" id="setEMV"/> 
+<!-- <input type="button" value="Set Bitmap" id="setBitMap"/>  -->
+</div>
+<div style="display:flex; flex-direction: row;  align-items: center">
+ 
+   <input type="button" value="Set Time" id="timeId"/>
+   <input type="button" value="Show Text" id="showTextId"/>
+   <input type="button" value="Cancel" id="cancelId"/>
+   <input type="button" value="Show Device Info" id="deviceInfoId"/>
+  
+   
+   
+  
+   </div>
+   <div>
+   <p id="msg"></p>
+    <input type="file" id="file" name="file" multiple />
+     <button id="upload">Load Bitmap</button>
+   </div>
+    
+    
+    <div>
+     <input type="file" id="privateKey" name="privateKey"  accept=".pem,.der"/>
+     <button id="signDataId">Sign Data</button>
+     <label id="signedDataId">set data here....</label>
+     <button id="verifyvendorId">Verify Vendor</button>
+     <input type="file" id="updateFirmwareFileId" name="updateFirmwareFileId"  accept=".bin"/>
+     <button id="updateFirmwareId">Update Firmware</button>
+   </div>
+    <div id="loading_screen"></div>
+    
+ <script th:src="@{/js/bluetooth.js}"></script>
+ <script th:src="@{/js/load_keys.js}"></script>
+ <script th:src="@{/js/load_param.js}"></script>
+ <script th:src="@{/js/read_card_data.js}"></script>
+ <script th:src="@{/js/others.js}"></script>
+  <script th:src="@{/js/vendor_verify.js}"></script>
+</body>
+
+</html>
