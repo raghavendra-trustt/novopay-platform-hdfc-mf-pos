@@ -1,7 +1,7 @@
 plugins {
     id 'java'
-    id 'org.springframework.boot' version '2.7.8'
-    //id 'org.springframework.boot' version '3.3.2'
+    //id 'org.springframework.boot' version '2.7.8'
+    id 'org.springframework.boot' version '3.3.2'
     id 'io.spring.dependency-management' version '1.1.6'
 }
 
@@ -9,10 +9,11 @@ group = 'com.in.novopay.mf.hdfc'
 version = '1.0.1-SNAPSHOT'
 
 java {
-    //sourceCompatibility = JavaVersion.VERSION_21
-    sourceCompatibility = JavaVersion.VERSION_11
+    sourceCompatibility = JavaVersion.VERSION_21
+    //sourceCompatibility = JavaVersion.VERSION_11
 }
-
+sourceCompatibility = '21'
+targetCompatibility = '21'
 
 repositories {
     //mavenCentral()
@@ -44,8 +45,8 @@ dependencies {
     annotationProcessor 'org.projectlombok:lombok:1.18.30'
     implementation 'net.logstash.logback:logstash-logback-encoder:7.4'
     implementation 'org.springframework.boot:spring-boot-starter-webflux'
-    implementation 'org.hid4java:hid4java:0.7.0'
-    implementation 'net.java.dev.jna:jna:5.13.0'
+    //implementation 'org.hid4java:hid4java:0.7.0'
+    //implementation 'net.java.dev.jna:jna:5.13.0'
 
 
 }
