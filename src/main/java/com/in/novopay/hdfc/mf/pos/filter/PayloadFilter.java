@@ -44,7 +44,7 @@ public class PayloadFilter implements Filter {
         String uri = wrappedRequest.getRequestURI();
         Map<String,String> configMap = new HashMap<>();
         configMap.put("uri", uri);
-        if("POST".equalsIgnoreCase(wrappedRequest.getMethod()) && uri.startsWith("/pos/txn")) {
+        if("POST".equalsIgnoreCase(wrappedRequest.getMethod()) && uri.startsWith("/mp63/txn")) {
             String encryptedSecretKey = wrappedRequest.getHeader("X-skey");
             String clientIV = wrappedRequest.getHeader("X-iv");
             byte[] decryptedKey = null;
@@ -53,14 +53,14 @@ public class PayloadFilter implements Filter {
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            //log.info("decryptedKey : {}", new String(Base64.getEncoder().encode(decryptedKey)));
+            log.info("decryptedKey : {}", new String(Base64.getEncoder().encode(decryptedKey)));
             byte[] decryptedIv = null;
             try {
                 decryptedIv = rsaUtil.decrypt(clientIV);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
-            //log.info("decryptedIv : {}", new String(Base64.getEncoder().encode(decryptedIv)));
+            log.info("decryptedIv : {}", new String(Base64.getEncoder().encode(decryptedIv)));
             // Get the request payload
             byte[] payload = wrappedRequest.getInputStream().readAllBytes();
 
@@ -70,7 +70,7 @@ public class PayloadFilter implements Filter {
                 aesUtil.initFromStrings(new String(Base64.getEncoder().encode(decryptedKey)), new String(Base64.getEncoder().encode(decryptedIv)));
                 decryptedRequestData = aesUtil.decrypt(new String(payload));
                 extractRequestParams(decryptedRequestData, configMap);
-                //log.info("decryptedRequestData : {}", decryptedRequestData);
+                log.info("decryptedRequestData : {}", decryptedRequestData);
             } catch (Exception e) {
                 throw new RuntimeException(e);
             }
@@ -82,7 +82,7 @@ public class PayloadFilter implements Filter {
                 // encrypt the response
                 try {
                     String responseBody = IOUtils.toString(wrappedResponse.getContentInputStream(), UTF_8);
-                    //log.info("actual response : {}", responseBody);
+                    log.info("actual response : {}", responseBody);
                     finalResponseBody = aesUtil.encrypt(responseBody);
                     wrappedResponse.reset();
                 } catch (Exception e) {

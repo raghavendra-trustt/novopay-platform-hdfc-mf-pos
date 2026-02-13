@@ -1,6 +1,8 @@
 package com.in.novopay.hdfc.mf.pos.controler;
 
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.in.novopay.hdfc.mf.pos.request.CompleteTxnRequest;
 import com.in.novopay.hdfc.mf.pos.request.ConnectDeviceRequest;
 import com.in.novopay.hdfc.mf.pos.request.StartTransactionRequest;
@@ -22,6 +24,7 @@ public class CardController {
     @Autowired
     CardService cardService;
 
+
     @GetMapping("/deviceList")
     public DeviceListResponse searchEnabledBluetooth() throws IOException, InterruptedException, ExecutionException
     {
@@ -31,44 +34,44 @@ public class CardController {
     }
 
     @PostMapping(path= "/connectUsb",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.TEXT_PLAIN_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public ConnectDeviceResponse getUsbNames(@RequestBody ConnectDeviceRequest connectDeviceRequest){
-        //ObjectMapper mapper = new ObjectMapper();
-        //ConnectDeviceRequest usbRequest = null;
-        /*try {
-            usbRequest = mapper.readValue(request, ConnectDeviceRequest.class);
+    public ConnectDeviceResponse getUsbNames(@RequestBody String request){
+        ObjectMapper mapper = new ObjectMapper();
+        ConnectDeviceRequest connectDeviceRequest = null;
+        try {
+            connectDeviceRequest = mapper.readValue(request, ConnectDeviceRequest.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-        }*/
+        }
         return cardService.establishConnection(connectDeviceRequest);
     }
 
     @PostMapping(path= "/startTxn",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.TEXT_PLAIN_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public StartTransactionResponse startTransaction(@RequestBody StartTransactionRequest txnDetails){
-        /*ObjectMapper mapper = new ObjectMapper();
+    public StartTransactionResponse startTransaction(@RequestBody String request){
+        ObjectMapper mapper = new ObjectMapper();
         StartTransactionRequest txnDetails = null;
         try {
             txnDetails = mapper.readValue(request, StartTransactionRequest.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-        }*/
+        }
         return cardService.startTransaction(txnDetails);
     }
 
     @PostMapping(path= "/completeTxn",
-            consumes = MediaType.APPLICATION_JSON_VALUE,
+            consumes = MediaType.TEXT_PLAIN_VALUE,
             produces = MediaType.APPLICATION_JSON_VALUE)
-    public CompleteTxnResponse completeTransaction(@RequestBody CompleteTxnRequest txnDetails){
-        /*ObjectMapper mapper = new ObjectMapper();
-        StartTransactionRequest txnDetails = null;
+    public CompleteTxnResponse completeTransaction(@RequestBody String request){
+        ObjectMapper mapper = new ObjectMapper();
+        CompleteTxnRequest txnDetails = null;
         try {
-            txnDetails = mapper.readValue(request, StartTransactionRequest.class);
+            txnDetails = mapper.readValue(request, CompleteTxnRequest.class);
         } catch (JsonProcessingException e) {
             throw new RuntimeException(e);
-        }*/
+        }
         return cardService.completeTransaction(txnDetails);
     }
 

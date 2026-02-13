@@ -22,7 +22,7 @@ public class LogUtility {
 
     public static void shipAndClearLogFile(Map<String,String> configMap) {
 
-        String filePath = "logs\\app.log";
+        String filePath = "logs\\app_mp63.log";
         Path path = Paths.get(filePath);
 
         try {
