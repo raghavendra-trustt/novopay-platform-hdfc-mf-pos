@@ -6,7 +6,7 @@ plugins {
 }
 
 group = 'com.in.novopay.mf.hdfc'
-version = '1.0.1-SNAPSHOT'
+version = '2.0.3-SNAPSHOT'
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21

@@ -31,7 +31,7 @@ public class LogUtility {
             if(StringUtils.isNotBlank(logsFlag) && logsFlag.equalsIgnoreCase("Y")) {
                 // Read file content
                 List<String> lines = new ArrayList<>();
-                lines.add("PAX Device logs for url : "+ configMap.get("uri"));
+                lines.add("Morefun Device logs for url : "+ configMap.get("uri"));
                 lines.addAll(Files.readAllLines(path));
                 shipLogs(lines, configMap);
             }

@@ -38,7 +38,7 @@ public class BlueToothServicess {
 		 ExecutorService threadpool = Executors.newCachedThreadPool();
 			Future<List<Devices>> futureTask = threadpool.submit(() ->getAllDevice());
 			while (!futureTask.isDone()) {
-			     log.debug("FutureTask is not finished yet...");
+			     //log.debug("FutureTask is not finished yet...");
 			 }
 			 List<Devices> result = futureTask.get();
 

@@ -17,12 +17,14 @@ import com.morefun.mpos.sdk.result.ReadCardResult;
 import com.morefun.mpos.sdk.result.ReadPosInfoResult;
 import lombok.extern.slf4j.Slf4j;
 import model.*;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import utils.BytesUtil;
 import utils.TransactionType;
 
+import java.math.BigDecimal;
 import java.security.KeyPair;
 import java.util.*;
 import java.util.stream.Collectors;
@@ -339,7 +341,7 @@ public class CardServiceImpl implements CardService{
                 int responseCode = 2;
                 if (apiStatusCode.equalsIgnoreCase("success")) {
                     responseCode = 0;
-                } else if (apiStatusCode.equals("fail")) {
+                } else if (apiStatusCode.equalsIgnoreCase("fail")) {
                     responseCode = 1;
                 }
                 log.info("setting EMV response card data...");
@@ -368,7 +370,12 @@ public class CardServiceImpl implements CardService{
             }
             log.info("authData : {}" , authData);
             String resp = deviceHelper.onlineAuth(authData,onlineAuthResultString);
-            notificationService.showCustomNotification(null, "Please remove the card");
+            if(apiStatusCode.equalsIgnoreCase("success")) {
+                notificationService.showCustomNotification("checked.png","Transaction completed successfully.. Please Remove Card");
+            } else {
+                notificationService.showCustomNotification(null, "Txn Declined.. Please Remove Card");
+            }
+            //notificationService.showCustomNotification("checked.png", "Please remove the card");
             responseStatus.setCode("00");
             responseStatus.setStatus("Success");
             responseStatus.setMessage(resp);
@@ -383,7 +390,8 @@ public class CardServiceImpl implements CardService{
     private static ReadCardModel getReadCardModel(StartTransactionRequest txnDetails, TransactionType transactionType) {
         ReadCardModel param = new ReadCardModel();
         param.setAllowfallback(true);
-        param.setAmount(txnDetails.getAmount());
+        //converting to implied decimal since SDK expects
+        param.setAmount(getAmountInImpliedDecimals(txnDetails.getAmount()));
         param.setPinInput(txnDetails.getPinInput());
         param.setPinMaxLen((byte)6);
         param.setCardTimeout((byte)60);
@@ -393,6 +401,23 @@ public class CardServiceImpl implements CardService{
         param.setForceonline(true);
         return param;
     }
+
+    private static String getAmountInImpliedDecimals(String amountStr) {
+        if (StringUtils.isBlank(amountStr)) {
+            return "0";
+        }
+        // Convert to BigDecimal
+        BigDecimal amount = new BigDecimal(amountStr);
+
+        // Multiply by 100 to shift decimal
+        BigDecimal implied = amount.multiply(BigDecimal.valueOf(100));
+
+        // Convert to long safely
+        long longAmount = implied.longValue();
+
+        return String.valueOf(longAmount);
+    }
+
 
     private boolean injectKeys(DeviceKeys deviceKeys) {
         // default to false
