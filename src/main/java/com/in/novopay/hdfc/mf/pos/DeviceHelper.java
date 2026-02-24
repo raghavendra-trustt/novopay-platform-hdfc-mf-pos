@@ -128,8 +128,9 @@ public class DeviceHelper {
         tags.add(EmvTagDef.EMV_TAG_9F12_IC_APNAME);
         tags.add(EmvTagDef.EMV_TAG_50_IC_APPLABEL);
         tags.add(EmvTagDef.EMV_TAG_57_IC_TRACK2EQUDATA);
+		tags.add(EmvTagDef.EMV_TAG_5F34_IC_PANSN);
 
-        param.setTags(tags);
+		param.setTags(tags);
         
         
     switch (readCardModel.getEmvTransactionType()) {

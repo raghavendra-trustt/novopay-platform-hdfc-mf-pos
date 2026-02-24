@@ -17,7 +17,7 @@ public class RemoteDeviceDiscovery {
 		ExecutorService threadpool = Executors.newCachedThreadPool();
 		Future<Boolean> futureTask = threadpool.submit(() ->findDevices());
 		while (!futureTask.isDone()) {
-		     System.out.println("FutureTask is not finished yet..."); 
+		     //System.out.println("FutureTask is not finished yet...");
 		 } 
 		 Boolean result = futureTask.get(); 
 
