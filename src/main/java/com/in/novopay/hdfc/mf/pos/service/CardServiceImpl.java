@@ -12,6 +12,7 @@ import com.in.novopay.hdfc.mf.pos.request.ConnectDeviceRequest;
 import com.in.novopay.hdfc.mf.pos.request.StartTransactionRequest;
 import com.in.novopay.hdfc.mf.pos.services.BlueToothServicess;
 import com.in.novopay.hdfc.mf.pos.services.OtherService;
+import com.in.novopay.hdfc.mf.pos.util.TripleDESUtil;
 import com.morefun.mpos.sdk.constants.EnumCommRet;
 import com.morefun.mpos.sdk.result.ReadCardResult;
 import com.morefun.mpos.sdk.result.ReadPosInfoResult;
@@ -56,6 +57,9 @@ public class CardServiceImpl implements CardService{
 
     @Autowired
     RSAEcbUtil rsaUtil;
+
+    @Autowired
+    TripleDESUtil tripleDESUtil;
 
     public static final String MF_DEVICE_NOT_DETECTED_PLEASE_CHECK_USB_PORT = "Morefun device not detected..... please check USB port";
 
@@ -250,6 +254,12 @@ public class CardServiceImpl implements CardService{
             return cardResponse;
         }
 
+        String plaintrack2 = result.track2;
+
+        if(StringUtils.isNotBlank(plaintrack2)) {
+            cardResponse.setTrack2data(getTrack2Data(keys, plaintrack2));
+        }
+
         if (!EnumCommRet.NOERROR.equals(result.commResult)) {
             responseStatus.setMessage("Read card error");
             responseStatus.setCode("201");
@@ -269,6 +279,27 @@ public class CardServiceImpl implements CardService{
 
         return cardResponse;
     }
+
+    private String getTrack2Data(DeviceKeys keys, String plaintrack2) {
+        String track2data = null;
+        log.info("plain Track2Data: " + plaintrack2);
+        try {
+            String dtmk = keys.getDtmk();//"E2D16FDED24111FA508DBE9960D1787E"; // 32 hex chars = 16 bytes
+            String encTmk = keys.getTmk();//"F190E7A878C74F705FE19C4925CD0EDD"; // Encrypted key
+            String plainTmk = tripleDESUtil.decrypt(encTmk, dtmk);
+            String encTdk = keys.getTdk();//"8BB5498941B142B43C06E389A65B563B";
+            String plainTdk = tripleDESUtil.decrypt(encTdk, plainTmk);
+            String encTpk = keys.getTpk();//"5753D0D9FBD20C1B802DCE05793E1183";
+            String plainTpk = tripleDESUtil.decrypt(encTpk, plainTmk);
+            track2data = tripleDESUtil.encrypt(plaintrack2, plainTdk);
+            log.info("plain TMK:" + plainTmk + " plain TDK:" + plainTdk + " plainTpk: "+ plainTpk+ " encrypted Track2Data: " + track2data);
+            log.info("decrypted Track2Data: " + tripleDESUtil.decrypt(track2data,plainTdk));
+        } catch (Exception e) {
+            log.error("error while encrypting track2data "+e);
+        }
+        return track2data;
+    }
+
     private void handleCardType(ReadCardResult result,
                                 StartTransactionResponse cardResponse,
                                 ResponseStatus responseStatus) {
@@ -322,7 +353,7 @@ public class CardServiceImpl implements CardService{
         cardResponse.setIccChipData(result.icData);
         cardResponse.setPinBlock(result.pinblock);
         cardResponse.setServiceCondCode(result.serviceCode);
-        cardResponse.setTrack2data(result.track2);
+        //cardResponse.setTrack2data(result.track2);
     }
 
 

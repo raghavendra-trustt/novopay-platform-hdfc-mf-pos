@@ -129,6 +129,15 @@ public class DeviceHelper {
         tags.add(EmvTagDef.EMV_TAG_50_IC_APPLABEL);
         tags.add(EmvTagDef.EMV_TAG_57_IC_TRACK2EQUDATA);
 		tags.add(EmvTagDef.EMV_TAG_5F34_IC_PANSN);
+		tags.add(EmvTagDef.EMV_TAG_5F28_IC_ISSCOUNTRYCODE);
+		tags.add(EmvTagDef.EMV_TAG_9B_TM_TSI);
+		tags.add(EmvTagDef.EMV_TAG_9F06_TM_AID);
+		tags.add(EmvTagDef.EMV_TAG_9F07_IC_AUC);
+		tags.add(EmvTagDef.EMV_TAG_9F08_IC_APPVERNO);
+		tags.add(EmvTagDef.EMV_TAG_5F30_IC_SERVICECODE);
+		tags.add(EmvTagDef.EMV_TAG_9F01_TM_ACQID);
+		tags.add(EmvTagDef.EMV_TAG_4F_IC_AID);
+		tags.add(EmvTagDef.EMV_TAG_9F21_TM_TRANSTIME);
 
 		param.setTags(tags);
         
@@ -366,7 +375,7 @@ public class DeviceHelper {
 		notificationService.showCustomNotification(null, "Please Insert/Swipe the card");
         ReadCardResult result=Controler.getInstance().ReadCard(param);
 
-     return result;
+		return result;
         
 	}
 	
