@@ -19,6 +19,7 @@ import com.morefun.mpos.sdk.result.ReadPosInfoResult;
 import lombok.extern.slf4j.Slf4j;
 import model.*;
 import org.apache.commons.lang3.StringUtils;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -137,9 +138,11 @@ public class CardServiceImpl implements CardService{
                     .filter(s -> s.getName() != null && s.getName().startsWith("MP"))
                     .collect(Collectors.toList());
             if(deviceList!= null && !deviceList.isEmpty()) {
+                Map<String, String> deviceInfo = getDeviceInfo();
                 responseStatus.setCode("00");
                 responseStatus.setStatus("Success");
                 responseStatus.setMessage("devices fetched");
+                MDC.put("terminalId", deviceInfo.get("MF_SERIAL_NUMBER"));
             } else {
                 notificationService.showCustomNotification(null, "Please ensure bluetooth enabled in Desktop/laptop");
                 responseStatus.setCode("120");
