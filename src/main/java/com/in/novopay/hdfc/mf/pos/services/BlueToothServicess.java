@@ -110,6 +110,7 @@ public class BlueToothServicess {
  
  public String setVendorIdService(Integer vendorId)
  {
+	 log.info("vendor Id : {}", vendorId);
 	 Controler.getInstance().setManufacturerId(vendorId);
 		//vendorId = Integer.parseInt(e.getItem().toString());
 	return "Success";

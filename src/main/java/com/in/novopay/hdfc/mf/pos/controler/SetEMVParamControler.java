@@ -2,13 +2,14 @@ package com.in.novopay.hdfc.mf.pos.controler;
 
 import java.util.ArrayList;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.in.novopay.hdfc.mf.pos.request.PosSetupRequest;
+import com.in.novopay.hdfc.mf.pos.response.PosSetUpResponse;
+import com.in.novopay.hdfc.mf.pos.service.CardService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import com.in.novopay.hdfc.mf.pos.services.SetEMVParamService;
@@ -21,6 +22,9 @@ public class SetEMVParamControler {
 	
 	@Autowired
 	private SetEMVParamService setEMVParamService;
+
+	@Autowired
+	private CardService cardService;
 	
 	
 	@RequestMapping(value="/load_aid",method = RequestMethod.POST, consumes = MediaType.APPLICATION_JSON_VALUE)
@@ -55,11 +59,22 @@ public class SetEMVParamControler {
 		return setEMVParamService.loadEmvParam(emvParam);
 	}
 	
-	@RequestMapping(value="/load_image",method = RequestMethod.POST, consumes = MediaType.ALL_VALUE)
+	@RequestMapping(value="/load_image",method = RequestMethod.POST, consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
 	public String loadBitmap(@RequestParam("file") MultipartFile[] multipartFile)
 	{
 		System.out.println("Request contains, File: " + multipartFile.length);
 		return setEMVParamService.loadBitmap(multipartFile);
+	}
+
+	@RequestMapping(value="/load_default_image",method = RequestMethod.GET)
+	public String loadBitmapImages()
+	{
+		return setEMVParamService.loadBitmapImages();
+	}
+
+	@PostMapping(path= "/posSetup")
+	public PosSetUpResponse posSetup(@RequestBody PosSetupRequest posSetupRequest){
+		return cardService.setPosSetup(posSetupRequest);
 	}
 	
 

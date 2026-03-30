@@ -1,5 +1,7 @@
 package com.in.novopay.hdfc.mf.pos.service;
 
+import com.in.novopay.hdfc.mf.pos.listeners.TipListener;
+import com.in.novopay.hdfc.mf.pos.request.PosSetupRequest;
 import com.in.novopay.hdfc.mf.pos.response.*;
 import com.in.novopay.hdfc.mf.pos.util.RSAEcbUtil;
 import com.in.novopay.hdfc.mf.pos.util.SecurityUtil;
@@ -13,12 +15,16 @@ import com.in.novopay.hdfc.mf.pos.request.StartTransactionRequest;
 import com.in.novopay.hdfc.mf.pos.services.BlueToothServicess;
 import com.in.novopay.hdfc.mf.pos.services.OtherService;
 import com.in.novopay.hdfc.mf.pos.util.TripleDESUtil;
+import com.morefun.mpos.sdk.Controler;
+import com.morefun.mpos.sdk.constants.EnumBitmapLocation;
 import com.morefun.mpos.sdk.constants.EnumCommRet;
 import com.morefun.mpos.sdk.result.ReadCardResult;
 import com.morefun.mpos.sdk.result.ReadPosInfoResult;
 import lombok.extern.slf4j.Slf4j;
 import model.*;
 import org.apache.commons.lang3.StringUtils;
+import org.eclipse.swt.graphics.Image;
+import org.eclipse.swt.widgets.Display;
 import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -29,6 +35,7 @@ import utils.TransactionType;
 import java.math.BigDecimal;
 import java.security.KeyPair;
 import java.util.*;
+import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
@@ -74,9 +81,13 @@ public class CardServiceImpl implements CardService{
         ConnectDeviceResponse connectDeviceResponse = new ConnectDeviceResponse();
         ResponseStatus responseStatus = new ResponseStatus();
         boolean deviceFlag = deviceHelper.isConnected();
+        int defaultVendorId = 28;
         try {
+            if(StringUtils.isNotBlank(connectDeviceRequest.getVendorId())) {
+                defaultVendorId = Integer.parseInt(connectDeviceRequest.getVendorId());
+            }
             //Set Vendor // as confimed by Morefun team, vendor Id was hard code to 0
-            String vendorResp = services.setVendorIdService(0);
+            String vendorResp = services.setVendorIdService(defaultVendorId);
             if (!"success".equalsIgnoreCase(vendorResp)) {
                 return buildFailureResponse(connectDeviceResponse, responseStatus,
                         "Device connect fail - setVendor api failed");
@@ -114,9 +125,9 @@ public class CardServiceImpl implements CardService{
         return connectDeviceResponse;
     }
 
-    private ConnectDeviceResponse buildFailureResponse(ConnectDeviceResponse response,
-                                                       ResponseStatus status,
-                                                       String message) {
+    private <T extends BaseResponse> T buildFailureResponse(T response,
+                                                            ResponseStatus status,
+                                                            String message) {
         status.setCode("120");
         status.setStatus("Failed");
         status.setMessage(message);
@@ -219,7 +230,7 @@ public class CardServiceImpl implements CardService{
             return cardResponse;
         }
 
-        String loadAid = loadAids();
+        /*String loadAid = loadAids();
         if (loadAid == null || loadAid.equalsIgnoreCase("Download aid fail")) {
             responseStatus.setMessage("AID download failed");
             responseStatus.setCode("201");
@@ -231,7 +242,7 @@ public class CardServiceImpl implements CardService{
             responseStatus.setMessage("CAPK download failed");
             responseStatus.setCode("201");
             return cardResponse;
-        }
+        }*/
 
         TransactionType transactionType = Arrays.stream(TransactionType.values())
                 .filter(t -> t.getDCTransactionCategory().equals(txnDetails.getTxnType()))
@@ -694,4 +705,111 @@ public class CardServiceImpl implements CardService{
         }
         return keyResponse;
     }
+
+    @Override
+    public PosSetUpResponse setPosSetup(PosSetupRequest posSetupRequest) {
+        PosSetUpResponse response = new PosSetUpResponse();
+        ResponseStatus responseStatus = new ResponseStatus();
+        int defaultVendorId = 28;
+        try {
+                if(StringUtils.isNotBlank(posSetupRequest.getVendorId())) {
+                    defaultVendorId = Integer.parseInt(posSetupRequest.getVendorId());
+                }
+                String vendorResp = services.setVendorIdService(defaultVendorId);
+                if (!"success".equalsIgnoreCase(vendorResp)) {
+                    return buildFailureResponse(response, responseStatus,
+                            "Device connect fail - setVendor api failed");
+                }
+
+                //Set Connection Mode
+                String connectionModeResp = services.connectionModeService(0, "HID");
+                if (!"success".equalsIgnoreCase(connectionModeResp)) {
+                    return buildFailureResponse(response, responseStatus,
+                            "Device connect fail - setConnectionMode api failed");
+                }
+
+                //Connect USB
+                boolean connectUsb = deviceHelper.connect(posSetupRequest.getDeviceAddress());
+                if (!connectUsb) {
+                    notificationService.showCustomNotification(null, MF_DEVICE_NOT_DETECTED_PLEASE_CHECK_USB_PORT);
+                    return buildFailureResponse(response, responseStatus,
+                            "Device connect fail");
+                }
+            // Load AIDs
+            if (isFailure(loadAids(), "Download aid fail")) {
+                return buildFailureResponse(response, responseStatus, "AID download failed");
+            }
+
+            // Load CAPKs
+            if (isFailure(loadCAPKs(), "Download CAPK ERROR")) {
+                return buildFailureResponse(response, responseStatus, "CAPK download failed");
+            }
+
+            deviceHelper.setBitmapImages();
+
+            // Success
+            responseStatus.setCode("00");
+            responseStatus.setStatus("Success");
+            responseStatus.setMessage("Success");
+            response.setResponseStatus(responseStatus);
+
+        } catch (Exception e) {
+            log.error("Error during POS setup", e);
+            return buildFailureResponse(response, responseStatus, "Unexpected error occurred");
+        }
+
+        return response;
+    }
+
+    private PosSetUpResponse isDeviceConnected(PosSetupRequest request, PosSetUpResponse response, ResponseStatus status) {
+        if (deviceHelper.isConnected()) {
+            return null; // Already connected
+        }
+
+        if (!"success".equalsIgnoreCase(services.setVendorIdService(28))) {
+            return buildFailureResponse(response, status, "Device connect fail - setVendor API failed");
+        }
+
+        if (!"success".equalsIgnoreCase(services.connectionModeService(0, "HID"))) {
+            return buildFailureResponse(response, status, "Device connect fail - setConnectionMode API failed");
+        }
+
+        if (!deviceHelper.connect(request.getDeviceAddress())) {
+            notificationService.showCustomNotification(null, MF_DEVICE_NOT_DETECTED_PLEASE_CHECK_USB_PORT);
+            return buildFailureResponse(response, status, "Device connect fail");
+        }
+        return null; // Connected successfully
+    }
+
+    private boolean isFailure(String result, String failureMessage) {
+        return result == null || result.equalsIgnoreCase(failureMessage);
+    }
+
+    public void setBitmap(TipListener listener) {
+        final Display display = Display.getDefault();
+        Image image = new Image(display, "images/welcome.png");
+
+        listener.onTip("Loading welcome");
+        Controler.getInstance().setBitmap(EnumBitmapLocation.ROM, 1, 0, 0, 128, 16, image);
+
+        listener.onTip("Loading searchcard");
+        image = new Image(display, "images/searchcard.png");
+        Controler.getInstance().setBitmap(EnumBitmapLocation.RAM, 1, 0, 0, 128, 48, image);
+
+        listener.onTip("Loading reading");
+        image = new Image(display, "images/reading.png");
+        Controler.getInstance().setBitmap(EnumBitmapLocation.ROM, 2, 0, 0, 128, 48, image);
+
+        listener.onTip("Loading cardreadfail");
+        image = new Image(display, "images/cardreadfail.png");
+        Controler.getInstance().setBitmap(EnumBitmapLocation.ROM, 3, 0, 0, 128, 48, image);
+
+        listener.onTip("Loading inputpin");
+        image = new Image(display, "images/inputpin.png");
+        Controler.getInstance().setBitmap(EnumBitmapLocation.RAM, 2, 0, 0, 128, 48, image);
+
+        listener.onTip("Set bitmap success");
+
+    }
+
 }

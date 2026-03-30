@@ -44,6 +44,12 @@ public class SetEMVParamService {
 		return deviceHelper.setBitmap(multipartFile);
 		
 	}
+	public String loadBitmapImages()
+	{
+		return deviceHelper.setBitmapImages();
+
+	}
+
 
 
 }

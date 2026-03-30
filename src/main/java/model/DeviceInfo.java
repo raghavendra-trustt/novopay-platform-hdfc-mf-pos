@@ -24,4 +24,13 @@ public class DeviceInfo {
 	}
 	private String responseMessage;
 	private ReadPosInfoResult data;
+
+	@Override
+	public String toString() {
+		return "DeviceInfo{" +
+				"statusCode='" + statusCode + '\'' +
+				", responseMessage='" + responseMessage + '\'' +
+				", data=" + data +
+				'}';
+	}
 }

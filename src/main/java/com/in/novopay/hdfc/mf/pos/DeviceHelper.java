@@ -356,6 +356,8 @@ public class DeviceHelper {
                     	com.morefun.mpos.sdk.Log.d("Waiting read card");
                         break;
                     case 3://Waiting enter the password
+						//enter pin prompt
+						notificationService.showCustomNotification("pin.png","PLS ENTER PIN");
                     	com.morefun.mpos.sdk.Log.d("Waiting read card");
                         break;
                     case 4://Waiting enter the amount
@@ -653,6 +655,37 @@ public class DeviceHelper {
 		
 	
 		     return "Image uploaded successfuly";
+}
+
+public String setBitmapImages(){
+	final Display display = Display.getDefault();
+	String path = "src/main/resources/";
+	Image image = new Image(display, path+"images/welcome.png");
+
+	ShowBitMapResult imgWelRes = Controler.setBitmap(EnumBitmapLocation.ROM, 1, 0, 0, 128, 16, image);
+	System.out.println("welcome img res : "+ imgWelRes.commResult);
+
+	image = new Image(display, path+"images/Insert Card.png");
+	ShowBitMapResult imgCardRes = Controler.setBitmap(EnumBitmapLocation.RAM, 1, 0, 0, 128, 48, image);
+	System.out.println("insert res : "+ imgCardRes.commResult);
+
+	image = new Image(display, path+"images/Enter PIN.png");
+	ShowBitMapResult ourimgPinRes = Controler.setBitmap(EnumBitmapLocation.RAM, 2, 0, 0, 128, 48, image);
+	System.out.println("pin res : "+ ourimgPinRes.commResult);
+
+	image = new Image(display, path+"images/Remove Card.png");
+	ShowBitMapResult cardReadFailRes = Controler.setBitmap(EnumBitmapLocation.RAM, 3, 0, 0, 128, 48, image);
+	System.out.println("cardreadfail res : "+ cardReadFailRes.commResult);
+
+	image = new Image(display, path+"images/Txn. Approved.png");
+	ShowBitMapResult txnAppRes = Controler.setBitmap(EnumBitmapLocation.RAM, 4, 0, 0, 128, 48, image);
+	System.out.println("txnAppRes res : "+ txnAppRes.commResult);
+
+	image = new Image(display, path+"images/Txn. Declined.png");
+	ShowBitMapResult txnDecRes = Controler.setBitmap(EnumBitmapLocation.RAM, 5, 0, 0, 128, 48, image);
+	System.out.println("txnDecRes res : "+ txnDecRes.commResult);
+
+	return "Image uploaded successfully";
 }
 	
 	public String setKeyIndex(KeyIndexModel keyIndexModel) {

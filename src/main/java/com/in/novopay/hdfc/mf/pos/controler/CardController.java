@@ -5,6 +5,7 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.in.novopay.hdfc.mf.pos.request.CompleteTxnRequest;
 import com.in.novopay.hdfc.mf.pos.request.ConnectDeviceRequest;
+import com.in.novopay.hdfc.mf.pos.request.PosSetupRequest;
 import com.in.novopay.hdfc.mf.pos.request.StartTransactionRequest;
 import com.in.novopay.hdfc.mf.pos.response.*;
 import com.in.novopay.hdfc.mf.pos.service.CardService;
@@ -45,6 +46,20 @@ public class CardController {
             throw new RuntimeException(e);
         }
         return cardService.establishConnection(connectDeviceRequest);
+    }
+
+    @PostMapping(path= "/posSetup",
+            consumes = MediaType.TEXT_PLAIN_VALUE,
+            produces = MediaType.APPLICATION_JSON_VALUE)
+    public PosSetUpResponse posSetup(@RequestBody String request){
+        ObjectMapper mapper = new ObjectMapper();
+        PosSetupRequest posSetupRequest = null;
+        try {
+            posSetupRequest = mapper.readValue(request, PosSetupRequest.class);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException(e);
+        }
+        return cardService.setPosSetup(posSetupRequest);
     }
 
     @PostMapping(path= "/startTxn",

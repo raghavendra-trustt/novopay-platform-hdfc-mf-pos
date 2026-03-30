@@ -36,8 +36,10 @@ upload.click(function(){
 	 
 for(let i = 0; i < file_data.length; i++)
 {
-	console.log(file_data.name)
-	form_data.append("file", file_data);
+	/*console.log(file_data.name)
+	form_data.append("file", file_data);*/
+	console.log(file_data[i].name); // log each file name
+    form_data.append("file", file_data[i]);
 }
       
 setBitParam();
@@ -182,7 +184,7 @@ function setEMVParam()
 
 function setBitParam()
 {
-	url = "/mp63/load_image";
+	/*url = "/mp63/load_image";
 	$.ajax({
             url: url, // point to server-side controller method
             dataType: 'text', // what to expect back from the server
@@ -196,7 +198,24 @@ function setBitParam()
                   alert(response); // display success response from the server
                 },
              error: function (response) {
-              alert(response); // display error response from the server
+              alert('error'+ response); // display error response from the server
                }
+            });*/
+            alert('hi'+ form_data);
+
+            $.ajax({
+                url: "/mp63/load_image",
+                type: "POST",
+                data: form_data,
+                contentType: false,
+                processData: false,
+                success: function (response) {
+                    alert("Success: " + response);
+                },
+                error: function (xhr) {
+                    alert("Error: " + xhr.status + " " + xhr.responseText);
+                }
             });
+
+
 }
