@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.security.KeyFactory;
 import java.security.NoSuchAlgorithmException;
 import java.security.PrivateKey;
@@ -15,10 +17,7 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.text.DateFormat;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-
-import java.util.Date;
-import java.util.List;
+import java.util.*;
 
 import com.in.novopay.hdfc.mf.pos.notifications.NotificationService;
 import com.morefun.mpos.sdk.constants.*;
@@ -659,7 +658,10 @@ public class DeviceHelper {
 
 public String setBitmapImages(){
 	final Display display = Display.getDefault();
-	String path = "src/main/resources/";
+	Path currentRelativePath = Paths.get("");
+	String path = currentRelativePath.toAbsolutePath().toString();
+	log.info("Current absolute path is: {}" ,path);
+	path = path + "/";
 	Image image = new Image(display, path+"images/welcome.png");
 
 	ShowBitMapResult imgWelRes = Controler.setBitmap(EnumBitmapLocation.ROM, 1, 0, 0, 128, 16, image);
