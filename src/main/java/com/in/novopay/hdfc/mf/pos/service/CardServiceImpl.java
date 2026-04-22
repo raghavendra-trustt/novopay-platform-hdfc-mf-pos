@@ -306,8 +306,8 @@ public class CardServiceImpl implements CardService{
             String encTpk = keys.getTpk();//"5753D0D9FBD20C1B802DCE05793E1183";
             String plainTpk = tripleDESUtil.decrypt(encTpk, plainTmk);
             track2data = tripleDESUtil.encrypt(plaintrack2, plainTdk);
-            log.info("plain TMK:" + plainTmk + " plain TDK:" + plainTdk + " plainTpk: "+ plainTpk+ " encrypted Track2Data: " + track2data);
-            log.info("decrypted Track2Data: " + tripleDESUtil.decrypt(track2data,plainTdk));
+            //log.info("plain TMK:" + plainTmk + " plain TDK:" + plainTdk + " plainTpk: "+ plainTpk+ " encrypted Track2Data: " + track2data);
+            //log.info("decrypted Track2Data: " + tripleDESUtil.decrypt(track2data,plainTdk));
         } catch (Exception e) {
             log.error("error while encrypting track2data "+e);
         }
@@ -735,23 +735,23 @@ public class CardServiceImpl implements CardService{
                     return buildFailureResponse(response, responseStatus,
                             "Device connect fail");
                 }
-            // Load AIDs
-            if (isFailure(loadAids(), "Download aid fail")) {
-                return buildFailureResponse(response, responseStatus, "AID download failed");
-            }
+                // Load AIDs
+                if (isFailure(loadAids(), "Download aid fail")) {
+                    return buildFailureResponse(response, responseStatus, "AID download failed");
+                }
 
-            // Load CAPKs
-            if (isFailure(loadCAPKs(), "Download CAPK ERROR")) {
-                return buildFailureResponse(response, responseStatus, "CAPK download failed");
-            }
+                // Load CAPKs
+                if (isFailure(loadCAPKs(), "Download CAPK ERROR")) {
+                    return buildFailureResponse(response, responseStatus, "CAPK download failed");
+                }
 
-            deviceHelper.setBitmapImages();
+                //deviceHelper.setBitmapImages();
 
-            // Success
-            responseStatus.setCode("00");
-            responseStatus.setStatus("Success");
-            responseStatus.setMessage("Success");
-            response.setResponseStatus(responseStatus);
+                // Success
+                responseStatus.setCode("00");
+                responseStatus.setStatus("Success");
+                responseStatus.setMessage("Success");
+                response.setResponseStatus(responseStatus);
 
         } catch (Exception e) {
             log.error("Error during POS setup", e);
